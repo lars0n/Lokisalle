@@ -1,12 +1,15 @@
 <?php 
  require_once("inc/init.inc.php");
 
-/* code pour l'inscription */
+/* code pour la connexion */
 
-/*if(isset($_POST['pseudo']) && isset($_POST['mdp']) && isset($_POST['nom']) && isset($_POST['prenom']) && isset($_POST['email']) && isset($_POST['civilite']))
+if(isset($_POST['email'], $_POST['mdp']))
 {
-    pre($_POST);
-}*/
+    $email  = $_POST['email'];
+    $mdp    = $_POST['mdp'];
+
+    
+}
 
  require("inc/header.inc.php");
 

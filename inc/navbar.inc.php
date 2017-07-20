@@ -25,7 +25,7 @@
             <li>
               <div class="row">
                 <div class="col-md-12">
-                  <form class="form" role="form" method="post" action="login" accept-charset="UTF-8" id="login-nav">
+                  <form class="form" role="form" method="post" action="" accept-charset="UTF-8" id="login-nav">
                       <legend>Login</legend>
                       <div class="form-group">
                         <label class="sr-only" for="exampleInputEmail2">Adresse Email</label>
