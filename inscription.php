@@ -1,5 +1,9 @@
 <?php 
- require_once("inc/init.inc.php");
+require_once("inc/init.inc.php");
+
+if(utilisateur_est_connecte()) {
+    header('location:index.php');
+}
 
 /* code pour l'inscription */
 
@@ -40,13 +44,14 @@ if(isset($_POST['pseudo']) && isset($_POST['mdp']) && isset($_POST['nom']) && is
         $req = $pdo->prepare("SELECT * FROM membre WHERE email = ?");
         $req->execute([$membre['email']]);
 
-        /* si c'est le cas on l'enregistre */
+        /* si c'est le cas on ne l'enregistre pas */
         if($req->fetch()) {
             $message = '<li>Cette utilisateur existe déja</li>';
         }else
         {
+            $mdp = password_hash($membre['mdp'], PASSWORD_BCRYPT);
             $enregistrement = $pdo->prepare("INSERT INTO membre (pseudo, mdp, nom, prenom, email, civilite, statut, date_enregistrement) VALUES (?, ?, ?, ?, ?, ?, 0, NOW())");
-            $enregistrement->execute([$membre['pseudo'], $membre['mdp'], $membre['nom'], $membre['prenom'], $membre['email'], $membre['civilite']]);
+            $enregistrement->execute([$membre['pseudo'], $mdp, $membre['nom'], $membre['prenom'], $membre['email'], $membre['civilite']]);
 
             header('location:index.php');
         }

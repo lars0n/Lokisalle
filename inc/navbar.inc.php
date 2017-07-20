@@ -8,7 +8,7 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="#">Lokisalle</a>
+      <a class="navbar-brand" href="index.php">Lokisalle</a>
     </div>
 
     <!-- Collect the nav links, forms, and other content for toggling -->
@@ -18,7 +18,18 @@
       </ul>
 
       <ul class="nav navbar-nav navbar-right">
-        <li><a href="#">Link</a></li>
+        <?php if(utilisateur_est_admin()): ?>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Gestion Admin <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="#">Gestion des salles</a></li>
+            <li><a href="#">Gestion des produits</a></li>
+            <li><a href="#">Gestion des membres</a></li>
+            <li><a href="#">Gestion des commandes</a></li>
+          </ul>
+        </li>
+        <?php endif ?>
+        <?php if(!utilisateur_est_connecte()):?>
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown"><b>Connexion</b><span class="caret"></span></a>
           <ul id="login-dp" class="dropdown-menu">
@@ -47,6 +58,10 @@
             </li>
           </ul><!-- /.dropdown-menu-->
         </li><!-- /.dropdown -->
+        <?php else: ?>
+          <li><a href="#">Profil</a></li>
+          <li><a href="?action=deconnexion"><span class="glyphicon glyphicon-off text-danger" aria-hidden="true"></span></a></li>
+        <?php endif ?>
       </ul><!-- /.navbar-right -->
     </div><!-- /.navbar-collapse -->
   </div><!-- /.container-fluid -->
