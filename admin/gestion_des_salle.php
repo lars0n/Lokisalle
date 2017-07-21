@@ -4,6 +4,32 @@
     $salles     = $pdo->query("SELECT * FROM salle");
     $nb_colone  = $salles->columnCount();
 
+    // mettre en place un controle pour savoir si l'utilisateur veut une suppression d'un produit
+    if(isset($_GET['action']) && $_GET['action'] == 'supprimer' && !empty($_GET['id_salle']) && is_numeric($_GET['id_salle'])) 
+    {
+        // is_numeric permet de savoir si l'information est bien une valeur numérique sans tenir compte de son type (les informations provenant de GET et de POST sont toujours de type string)
+        // on fait une requete pour récupérer les informations de l'article afin de connaitre la photo pour la supprimer
+        $id_salle = $_GET['id_salle'];
+        $salle_a_supprimer = $pdo->prepare("SELECT * FROM salle WHERE id_salle = ?");
+        $salle_a_supprimer->execute([$id_salle]);
+
+        $salle_a_suppr = $salle_a_supprimer->fetch(PDO::FETCH_ASSOC);
+        // on vérifie si la photo existe
+        if(!empty($salle_a_suppr['photo']))
+        {
+            // on vérifie le chemin si le fichier existe
+            $chemin_photo = RACINE_SITE . '/assets/photo/' . $salle_a_suppr['photo'];
+            //$message .= $chemin_photo;
+            if(file_exists($chemin_photo))
+            {
+            unlink($chemin_photo); // unlink() permet de supprimer un fichhier sur le serveur.
+            }
+        }
+        $pdo->prepare("DELETE FROM salle WHERE id_salle = ?")->execute([$id_salle]);
+
+        header('location:gestion_des_salle.php');
+    } 
+
     if(isset($_GET['action']) && $_GET['action'] == 'modification' && is_numeric($_GET['id_salle']))
     {
 
@@ -137,8 +163,30 @@
                                                 <td><?= $valeur ?></td>
                                                 <?php endif ?>
                                             <?php endforeach ?>
-                                                <td class="text-center"><a href="?id_salle=<?= $salle->id_salle ?>&action=details" class="btn btn-success"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></a> <a href="?id_salle=<?= $salle->id_salle ?>&action=modification" class="btn btn-primary" ><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a> <a href="?id_salle=<?= $salle->id_salle ?>" class="btn btn-danger"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></a></td>
+                                                <td class="text-center">
+                                                    <a href="?id_salle=<?= $salle->id_salle ?>&action=details" class="btn btn-success"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></a>
+                                                    <a href="?id_salle=<?= $salle->id_salle ?>&action=modification" class="btn btn-primary" ><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
+                                                    <a href="#" class="btn btn-danger" data-toggle="modal" data-target="#suppresionModal<?= $salle->id_salle ?>" ><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
+                                                </td>
                                         </tr>
+                                        <!-- Modal suppression -->
+                                        <div class="modal fade" id="suppresionModal<?= $salle->id_salle ?>" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                                        <div class="modal-dialog" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-danger">
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                                    <h4 class="modal-title" id="myModalLabel">Supprimer une salle</h4>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Etes Vous sure de vouloir supprimer cette salle?
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>
+                                                    <a href="?id_salle=<?= $salle->id_salle ?>&action=supprimer" class="btn btn-danger">Confirmer</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        </div>
                                     <?php endwhile ?>
                                 </tbody>
                             </table>
