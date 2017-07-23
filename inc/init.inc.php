@@ -8,7 +8,8 @@
     // définition de constante pour le chemin absolut ainsi que la racine serveur
     // racine site
     define("RACINE_SITE", dirname(__DIR__));
-    define('URL', '/Formation/PARIS-IV/projetPhpLokisal/');
+    //define('URL', '/Formation/PARIS-IV/projetPhpLokisal/');
+    define('URL', '/php/lokisalle/');
 
 
     require_once("function.inc.php");
