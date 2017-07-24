@@ -4,7 +4,7 @@
     $salles     = $pdo->query("SELECT * FROM salle");
     $nb_colone  = $salles->columnCount();
 
-    // mettre en place un controle pour savoir si l'utilisateur veut une suppression d'un produit
+    // mettre en place un controle pour savoir si l'utilisateur veut une suppression d'une salle
     if(isset($_GET['action']) && $_GET['action'] == 'supprimer' && !empty($_GET['id_salle']) && is_numeric($_GET['id_salle'])) 
     {
         // is_numeric permet de savoir si l'information est bien une valeur numérique sans tenir compte de son type (les informations provenant de GET et de POST sont toujours de type string)

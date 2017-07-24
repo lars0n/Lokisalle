@@ -8,6 +8,27 @@
     $produits   = $pdo->query("SELECT produit.id_produit, produit.date_arrivee, produit.date_depart, produit.id_salle, produit.prix, produit.etat, salle.titre, salle.photo FROM produit, salle WHERE produit.id_salle = salle.id_salle");
     $nb_colone  = $produits->columnCount();
 
+    // ici je recupere le produit a modifier
+    if(isset($_GET['action']) && $_GET['action'] == 'modification' && is_numeric($_GET['id_produit']))
+    {
+
+        $produit_details = $pdo->prepare("SELECT * FROM produit WHERE id_produit = ?");
+        $produit_details->execute([$_GET['id_produit']]);
+        $produit_details = $produit_details->fetch(PDO::FETCH_OBJ);
+    }
+
+    // mettre en place un controle pour savoir si l'utilisateur veut une suppression d'une salle
+    if(isset($_GET['action']) && $_GET['action'] == 'supprimer' && !empty($_GET['id_produit']) && is_numeric($_GET['id_produit'])) 
+    {
+        // is_numeric permet de savoir si l'information est bien une valeur numérique sans tenir compte de son type (les informations provenant de GET et de POST sont toujours de type string)
+        // on fait une requete pour récupérer les informations de l'article afin de connaitre la photo pour la supprimer
+        $id_produit = $_GET['id_produit'];
+
+        $pdo->prepare("DELETE FROM produit WHERE id_produit = ?")->execute([$id_produit]);
+
+        header('location:gestion_des_produit.php');
+    } 
+
     $erreur = false;
     // controle du formulaire
     if(isset($_POST['date_arrivee'], $_POST['date_depart'], $_POST['salle'], $_POST['prix']))
@@ -25,8 +46,18 @@
 
         if(!$erreur)
         {
-            $enregistrement = $pdo->prepare("INSERT INTO produit (id_salle, date_arrivee, date_depart, prix, etat) VALUES (?, ?, ?, ?, ?)");
-            $enregistrement->execute([$salle, $arrive, $depart, $prix, 'libre']);
+            if(isset($_GET['action']) && $_GET['action'] == 'modification' && is_numeric($_GET['id_produit']))
+            {
+                $id_produit = $_GET['id_produit'];
+                $enregistrement = $pdo->prepare("UPDATE produit SET id_salle = ? , date_arrivee = ?, date_depart = ?, prix = ?, etat = ? where id_produit = ?");
+                $enregistrement->execute([$salle, $arrive, $depart, $prix, 'libre', $id_produit]);
+            }else 
+            {
+                $enregistrement = $pdo->prepare("INSERT INTO produit (id_salle, date_arrivee, date_depart, prix, etat) VALUES (?, ?, ?, ?, ?)");
+                $enregistrement->execute([$salle, $arrive, $depart, $prix, 'libre']);
+            }
+
+            header('location:gestion_des_produit.php');
         }
     }
 
@@ -87,8 +118,8 @@
                                             <?php endif ?>
                                         <?php endforeach ?>
                                             <td class="text-center">
-                                                <a href="?id_salle=<?= $produit->id_produit ?>&action=details" class="btn btn-success"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></a>
-                                                <a href="?id_salle=<?= $produit->id_produit ?>&action=modification" class="btn btn-primary" ><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
+                                                <a href="?id_produit=<?= $produit->id_produit ?>&action=details" class="btn btn-success"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></a>
+                                                <a href="?id_produit=<?= $produit->id_produit ?>&action=modification" class="btn btn-primary" ><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
                                                 <a href="#" class="btn btn-danger" data-toggle="modal" data-target="#suppresionModal<?= $produit->id_produit ?>" ><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
                                             </td>
                                     </tr>
@@ -105,7 +136,7 @@
                                             </div>
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>
-                                                <a href="?id_salle=<?= $salle->id_salle ?>&action=supprimer" class="btn btn-danger">Confirmer</a>
+                                                <a href="?id_produit=<?= $produit->id_produit ?>&action=supprimer" class="btn btn-danger">Confirmer</a>
                                             </div>
                                         </div>
                                     </div>
@@ -117,8 +148,44 @@
                 </div><!-- panel default-->
             </div><!-- col-12 -->
         </div><!-- row -->
+
+        <?php if(isset($_GET['action']) && $_GET['action'] == 'modification'): ?>
+        <form action="" method="post" class="well">
+        <legend>Modification d'un produit <a href="gestion_des_produit.php" class="btn btn-danger pull-right">X</a></legend>
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label for="date_arrivee">Date d'arrivée</label>
+                        <input type="text" class="form-control" name="date_arrivee" id="date_arrivee" value="<?= $produit_details->date_arrivee ?>" placeholder="00/00/0000 00:00">
+                    </div>
+                    <div class="form-group">
+                        <label for="date_depart">Date de départ</label>
+                        <input type="text" class="form-control" name="date_depart" id="date_depart" value="<?= $produit_details->date_depart ?>" placeholder="00/00/0000 00:00">
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label for="salle">Salle</label>
+                        <select class="form-control" name="salle" id="salle">
+                            <?php while($salle = $salles->fetch(PDO::FETCH_OBJ)): ?>
+                                <option value="<?= $salle->id_salle ?> <?= ($produit_details->id_salle == $salle->id_salle)? 'selected': null ?>"><?= $salle->id_salle . ' - ' . $salle->titre . ' - ' . $salle->adresse . ' - ' . $salle->cp . ' - ' . $salle->ville . ' - ' . $salle->capacite . ' pers' ?></option>
+                            <?php endwhile ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="prix">Tarif</label>
+                        <input type="text" class="form-control" name="prix" id="prix" value="<?= $produit_details->prix ?>" placeholder="prix en euros">
+                    </div>
+                </div>
+                <div class="col-sm-12">
+                    <button type="submit" class="btn btn-primary btn-block">Enregistrer</button>
+                </div>
+            </div><!-- /.row-->
+        </form>
+        <?php endif ?>
     </div>
     <!-- /.wrapper-->
+
 
     <!-- Modal -->
     <div class="modal fade bs-example-modal-lg" id="ajoutproduit" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
@@ -134,11 +201,11 @@
                             <div class="col-sm-6">
                                 <div class="form-group">
                                     <label for="date_arrivee">Date d'arrivée</label>
-                                    <input type="text" class="form-control" name="date_arrivee" id="date_arrivee" value="" placeholder="00/00/0000 00:00">
+                                    <input type="text" class="form-control" name="date_arrivee" id="date_arrivee" value="<?= (isset($arrive)? $arrive : null) ?>" placeholder="00/00/0000 00:00">
                                 </div>
                                 <div class="form-group">
                                     <label for="date_depart">Date de départ</label>
-                                    <input type="text" class="form-control" name="date_depart" id="date_depart" value="" placeholder="00/00/0000 00:00">
+                                    <input type="text" class="form-control" name="date_depart" id="date_depart" value="<?= (isset($depart)? $depart : null) ?>" placeholder="00/00/0000 00:00">
                                 </div>
                             </div>
                             <div class="col-sm-6">
@@ -152,7 +219,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="prix">Tarif</label>
-                                    <input type="text" class="form-control" name="prix" id="prix" value="" placeholder="prix en euros">
+                                    <input type="text" class="form-control" name="prix" id="prix" value="<?= (isset($prix)? $prix : null) ?>" placeholder="prix en euros">
                                 </div>
                             </div>
                             <div class="col-sm-12">

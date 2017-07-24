@@ -282,6 +282,12 @@
                         <li>
                             <a href="gestion_des_produit.php"><i class="fa fa-dashboard fa-fw"></i> Gestion des Produits</a>
                         </li>                  
+                        <li>
+                            <a href="gestion_des_membre.php"><i class="fa fa-dashboard fa-fw"></i> Gestion des Membres</a>
+                        </li>                  
+                        <li>
+                            <a href="gestion_des_avis.php"><i class="fa fa-dashboard fa-fw"></i> Gestion des Avis</a>
+                        </li>                  
                     </ul>
                 </div>
                 <!-- /.sidebar-collapse -->
